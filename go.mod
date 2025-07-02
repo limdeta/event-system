@@ -1,4 +1,4 @@
-module hello-kafka
+module event-system
 
 go 1.22
 
