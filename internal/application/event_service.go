@@ -25,5 +25,7 @@ func (s *EventService) ProcessEvent(event *domain.Event) error {
 	if err := s.Publisher.Publish(event); err != nil {
 		return fmt.Errorf("event publishing failed: %w", err)
 	}
+
+	fmt.Print("Event published successfully: ", event.ID, "\n")
 	return nil
 }

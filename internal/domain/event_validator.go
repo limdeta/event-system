@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -57,7 +58,14 @@ func (v *JSONSchemaValidator) Validate(event *Event) error {
 		return err
 	}
 	if !result.Valid() {
-		return fmt.Errorf("validation error: %v", result.Errors())
+		var reasons []string
+		for _, err := range result.Errors() {
+			reasons = append(reasons, err.String())
+		}
+		return NewEventValidationError(strings.Join(reasons, "; "))
 	}
 	return nil
 }
+
+// func (v *JSONSchemaValidator) ReloadSchemas(schemaDir string) error {
+// }
