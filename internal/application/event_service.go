@@ -2,7 +2,6 @@ package application
 
 import (
 	"event-system/internal/domain"
-	"fmt"
 )
 
 type EventService struct {
@@ -20,12 +19,7 @@ func NewEventService(validator domain.EventValidator, publisher domain.EventPubl
 // Validate and publish event
 func (s *EventService) ProcessEvent(event *domain.Event) error {
 	if err := s.Validator.Validate(event); err != nil {
-		return fmt.Errorf("event validation failed: %w", err)
+		return err
 	}
-	if err := s.Publisher.Publish(event); err != nil {
-		return fmt.Errorf("event publishing failed: %w", err)
-	}
-
-	fmt.Print("Event published successfully: ", event.ID, "\n")
-	return nil
+	return s.Publisher.Publish(event)
 }

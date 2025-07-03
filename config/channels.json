@@ -1,0 +1,7 @@
+{
+  "OrderStatusEvent": {
+    "type": "kafka",
+    "endpoint": "orders-topic",
+    "schema": "order_status_notification"
+  }
+}

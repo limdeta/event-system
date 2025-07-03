@@ -15,15 +15,20 @@ type EventValidator interface {
 }
 
 type JSONSchemaValidator struct {
-	schemas map[string]*gojsonschema.Schema
+	schemas  map[string]*gojsonschema.Schema
+	registry EventRegistryInterface
+}
+type EventRegistryInterface interface {
+	ResolveChannel(channel string) (string, string, error)
 }
 
-func NewJSONSchemaValidator(schemaDir string) (*JSONSchemaValidator, error) {
+func NewJSONSchemaValidator(schemaDir string, registry EventRegistryInterface) (*JSONSchemaValidator, error) {
 	schemas := make(map[string]*gojsonschema.Schema)
 	files, err := os.ReadDir(schemaDir)
 	if err != nil {
 		return nil, err
 	}
+
 	for _, file := range files {
 		if filepath.Ext(file.Name()) == ".json" {
 			schemaPath := filepath.Join(schemaDir, file.Name())
@@ -33,7 +38,7 @@ func NewJSONSchemaValidator(schemaDir string) (*JSONSchemaValidator, error) {
 			}
 			u := &url.URL{
 				Scheme: "file",
-				Path:   "/" + filepath.ToSlash(absPath), // "/" for Windows
+				Path:   "/" + filepath.ToSlash(absPath),
 			}
 			schemaLoader := gojsonschema.NewReferenceLoader(u.String())
 			schema, err := gojsonschema.NewSchema(schemaLoader)
@@ -44,14 +49,19 @@ func NewJSONSchemaValidator(schemaDir string) (*JSONSchemaValidator, error) {
 			schemas[schemaType] = schema
 		}
 	}
-	return &JSONSchemaValidator{schemas: schemas}, nil
+	return &JSONSchemaValidator{
+		schemas:  schemas,
+		registry: registry,
+	}, nil
 }
 
 func (v *JSONSchemaValidator) Validate(event *Event) error {
-	schema, ok := v.schemas[event.Type]
+	_, schemaName, err := v.registry.ResolveChannel(event.Type)
+	schema, ok := v.schemas[schemaName]
 	if !ok {
-		return fmt.Errorf("no schema for event type: %s", event.Type)
+		return fmt.Errorf("no schema '%s' for event type: %s", schemaName, event.Type)
 	}
+
 	loader := gojsonschema.NewGoLoader(event.Payload)
 	result, err := schema.Validate(loader)
 	if err != nil {

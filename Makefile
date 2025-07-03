@@ -4,7 +4,6 @@ INTERNAL_DIR=./internal
 TESTS_DIR=./tests
 
 # Main commands
-
 .PHONY: all
 all: build
 
@@ -14,7 +13,7 @@ build:
 
 .PHONY: run
 run:
-	go run $(CMD_DIR)
+	go run $(CMD_DIR)/main.go
 
 .PHONY: install
 install:
@@ -26,6 +25,7 @@ install:
 .PHONY: test
 test: ## Unit + integration tests
 	go test -count=1 -v $(INTERNAL_DIR)/...
+	go test -count=1 -v $(CMD_DIR)/...
 
 .PHONY: test-e2e
 test-e2e: ## End-to-end tests
